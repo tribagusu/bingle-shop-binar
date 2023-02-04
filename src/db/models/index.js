@@ -12,10 +12,6 @@ User.hasMany(Order, {
   as: "orders",
 });
 
-// User.hasMany(Order_item, {
-//   as: "order_items_user",
-// });
-
 Product.belongsTo(User, {
   as: "owner",
   foreignKey: "user_id",
@@ -32,14 +28,9 @@ Order.belongsTo(User, {
 });
 
 Order.hasMany(Order_item, {
-  as: "order_items_order",
+  as: "order_items",
   foreignKey: "order_id",
 });
-
-// Order_item.belongsTo(User, {
-//   as: "owner",
-//   foreignKey: "user_id",
-// });
 
 Order_item.belongsTo(Order, {
   as: "order",

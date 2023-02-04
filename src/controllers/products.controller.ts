@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from "express"
-import { response } from "../helpers/response.helper"
-import { errors } from "../helpers/error.helper"
-const { Product } = require("../db/models")
+import { Request, Response, NextFunction } from "express";
+import { response } from "../helpers/response.helper";
+import { errors } from "../helpers/error.helper";
+const { Product } = require("../db/models");
 
 class ProductsController {
   public async index(
@@ -9,28 +9,28 @@ class ProductsController {
     res: Response,
     next: NextFunction
   ): Promise<Response> {
-    const { page, limit } = req.query
-    const pageInt = Number(page)
-    const limitInt = Number(limit)
-    const offset = (pageInt - 1) * limitInt
+    const { page, limit } = req.query;
+    const pageInt = Number(page);
+    const limitInt = Number(limit);
+    const offset = (pageInt - 1) * limitInt;
 
     const paging = {
       size: "",
       total: "",
       totalPages: "",
       current: "",
-    }
+    };
 
     try {
       const products = await Product.findAll({
         attributes: ["id", "name", "price", "stock", "sku"],
         // limit: limitInt,
         // offset: offset,
-      })
+      });
 
-      return response(res, 200, products)
+      return response(res, 200, { products });
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
 
@@ -40,24 +40,25 @@ class ProductsController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const { sku } = req.body
+      const { sku } = req.body;
 
+      // check if product already exist
       const findProduct = await Product.findOne({
         where: { sku },
         attributes: ["sku"],
-      })
-
+      });
       if (findProduct) {
         return errors(res, 400, {
           message: "product already exist",
-        })
+        });
       }
 
-      const product = await Product.create(req.body)
+      // create product
+      const product = await Product.create(req.body);
 
-      return response(res, 200, product)
+      return response(res, 200, { product });
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
 
@@ -67,17 +68,20 @@ class ProductsController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const { id } = req.params
-      const product = await Product.findByPk(id)
+      const { id } = req.params;
+
+      const product = await Product.findByPk(id);
+
+      // check if product exist
       if (!product) {
         return errors(res, 400, {
           message: "product does not exist",
-        })
+        });
       }
 
-      return response(res, 200, product)
+      return response(res, 200, { product });
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
 
@@ -87,19 +91,24 @@ class ProductsController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const { id } = req.params
-      const findProduct = await Product.findByPk(id)
+      const { id } = req.params;
+
+      // find product
+      const findProduct = await Product.findByPk(id);
+
+      // check if product exist
       if (!findProduct) {
         return errors(res, 400, {
           message: "product does not exist",
-        })
+        });
       }
 
-      const product = await Product.update(req.body, { where: { id } })
+      // update product
+      const product = await Product.update(req.body, { where: { id } });
 
-      return response(res, 200, product)
+      return response(res, 200, { product });
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
 
@@ -109,23 +118,28 @@ class ProductsController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const { id } = req.params
-      const findProduct = await Product.findByPk(id)
+      const { id } = req.params;
+
+      // find product
+      const findProduct = await Product.findByPk(id);
+
+      // check if product exist
       if (!findProduct) {
         return errors(res, 400, {
           message: "product does not exist",
-        })
+        });
       }
 
-      const product = await Product.destroy({
+      // delete product
+      await Product.destroy({
         where: { id },
-      })
+      });
 
-      return response(res, 200, product)
+      return response(res, 200, { message: "product deleted" });
     } catch (err) {
-      next(err)
+      next(err);
     }
   }
 }
 
-export const productController = new ProductsController()
+export const productController = new ProductsController();

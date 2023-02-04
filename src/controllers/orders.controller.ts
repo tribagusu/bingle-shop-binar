@@ -10,11 +10,18 @@ class OrdersController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const orders = await Order.findAll({
-        attributes: ["id", "user_id", "total"],
+      const { user_id } = req.body;
+
+      const findOrders = await Order.findAll({
+        where: { user_id },
+        attributes: ["id", "status", "total", "user_id"],
       });
 
-      return response(res, 200, orders);
+      if (findOrders.length === 0) {
+        return errors(res, 400, { message: "order not found" });
+      }
+
+      return response(res, 200, { orders: findOrders });
     } catch (err) {
       next(err);
     }
@@ -27,6 +34,7 @@ class OrdersController {
   ): Promise<Response> {
     try {
       const { user_id, cart } = req.body;
+
       // check if user true
       const isUser = await User.findOne({
         where: { id: user_id },
@@ -62,7 +70,7 @@ class OrdersController {
         },
       });
 
-      //_create order items
+      // create order items
       let orderItems = [];
       for (let i = 0; i < cart.length; i++) {
         const product = await Product.findOne({
@@ -93,15 +101,59 @@ class OrdersController {
     }
   }
 
-  public async show(req: Request, res: Response): Promise<Response> {
-    return res.send("show endpoint");
+  public async show(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const { id } = req.params;
+      const { user_id } = req.body;
+
+      // find order
+      const findOrder = await Order.findOne({
+        where: { id },
+        include: [
+          {
+            model: Order_item,
+            as: "order_items",
+            attributes: ["id", "quantity", "price"],
+          },
+        ],
+        attributes: ["id", "user_id", "status", "total"],
+      });
+      if (!id) {
+        return errors(res, 400, { message: "order not found" });
+      }
+
+      // check if user authorized
+      if (user_id !== findOrder.user_id) {
+        return errors(res, 400, { message: "user not authorized" });
+      }
+
+      return response(res, 200, { order: findOrder });
+    } catch (err) {
+      next(err);
+    }
   }
 
-  public async update(req: Request, res: Response): Promise<Response> {
-    return res.send("update endpoint");
-  }
+  public async delete(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const { id } = req.params;
 
-  public async delete(req: Request, res: Response): Promise<Response> {
+      // find orders
+      const orders = await Order.findByPk(id);
+      if (!orders) {
+        return errors(res, 400, { message: "orders not found" });
+      }
+    } catch (err) {
+      next(err);
+    }
+
     return res.send("delete endpoint");
   }
 }
