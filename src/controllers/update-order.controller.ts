@@ -1,19 +1,40 @@
 import { Request, Response, NextFunction } from "express";
 import { response } from "../helpers/response.helper";
-const { Order_item, Product } = require("../db/models");
+import { errors } from "../helpers/error.helper";
+const { Order } = require("../db/models");
 
 class UpdateOrderController {
-  public async create(
+  public async update(
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<Response> {
     try {
-      const { cart, order_id } = req.body;
+      const { id } = req.params;
+      const { user_id } = req.body;
 
-      // create order items
+      // find order
+      const isOrder = await Order.findByPk(id);
+      if (!isOrder) {
+        return errors(res, 400, { message: "order not found" });
+      }
 
-      return response(res, 200, {});
+      // check if user authorized
+      if (user_id !== isOrder.user_id) {
+        return errors(res, 400, {
+          message: "user not authorized",
+        });
+      }
+
+      // udpate order
+      await Order.update(
+        {
+          status: "paid",
+        },
+        { where: { id } }
+      );
+
+      return response(res, 200, { message: "status updated" });
     } catch (err) {
       next(err);
     }
