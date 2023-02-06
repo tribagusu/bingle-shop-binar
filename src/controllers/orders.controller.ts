@@ -146,15 +146,13 @@ class OrdersController {
       const { id } = req.params;
 
       // find orders
-      const orders = await Order.findByPk(id);
-      if (!orders) {
-        return errors(res, 400, { message: "orders not found" });
+      const order = await Order.findByPk(id);
+      if (!order) {
+        return errors(res, 400, { message: "order not found" });
       }
     } catch (err) {
       next(err);
     }
-
-    return res.send("delete endpoint");
   }
 }
 
