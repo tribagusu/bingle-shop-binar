@@ -1,11 +1,11 @@
 ## Bingle Shop
 
-#### Run this project
+#### How to run this program
 
-To run this program, we have to compile the typescript first into javascript before we run the server.
+To run this program, compile the typescript first into javascript and run the server.
 
 1. **npm run tsc**\
-   _it will run typescript compiling and create js version in build folder_
+   _run typescript compiling and create js version in build folder_
 
 2. **npm run dev**\
-   _it will run the development server_
+   _run the development server_
