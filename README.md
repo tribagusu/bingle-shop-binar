@@ -1,4 +1,4 @@
-## Bingle Shop
+## Bingle Shop a.k.a Kopiko
 
 #### How to run this program
 
