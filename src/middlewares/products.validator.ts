@@ -1,14 +1,14 @@
-import { body } from "express-validator"
-import { Request, Response, NextFunction } from "express"
-import { errorValidation } from "./helpers/error-validation"
+import { body } from "express-validator";
+import { Request, Response, NextFunction } from "express";
+import { errorValidation } from "../helpers/error.helper";
 
 export const createValidator = [
   body("name").notEmpty().withMessage("Name is mandatory"),
   body("sku").notEmpty().withMessage("Sku is mandatory"),
   (req: Request, res: Response, next: NextFunction) => {
-    errorValidation(req, res, next)
+    errorValidation(req, res, next);
   },
-]
+];
 
 export const updateValidator = [
   body("name").notEmpty().withMessage("Name is mandatory"),
@@ -16,6 +16,6 @@ export const updateValidator = [
   body("stock").notEmpty().withMessage("Stock is mandatory"),
   body("sku").notEmpty().withMessage("Sku is mandatory"),
   (req: Request, res: Response, next: NextFunction) => {
-    errorValidation(req, res, next)
+    errorValidation(req, res, next);
   },
-]
+];
