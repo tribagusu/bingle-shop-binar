@@ -22,3 +22,10 @@ export const createValidator = [
     errorValidation(req, res, next);
   },
 ];
+
+export const updateValidator = [
+  body("user_id").notEmpty().withMessage("user_id is mandatory"),
+  (req: Request, res: Response, next: NextFunction) => {
+    errorValidation(req, res, next);
+  },
+];

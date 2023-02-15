@@ -137,6 +137,42 @@ class OrdersController {
     }
   }
 
+  public async update(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const { id } = req.params;
+      const { user_id } = req.body;
+
+      // find order
+      const isOrder = await Order.findByPk(id);
+      if (!isOrder) {
+        return errors(res, 400, { message: "order not found" });
+      }
+
+      // check if user authorized
+      if (user_id !== isOrder.user_id) {
+        return errors(res, 400, {
+          message: "user not authorized",
+        });
+      }
+
+      // udpate order
+      await Order.update(
+        {
+          status: "paid",
+        },
+        { where: { id } }
+      );
+
+      return response(res, 200, { message: "status updated" });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   public async delete(
     req: Request,
     res: Response,
