@@ -1,40 +1,45 @@
-import { Request, Response, NextFunction } from "express";
-import { Authentication } from "../utils/authentication";
-import { response } from "../helpers/response.helper";
-import { errors } from "../helpers/error.helper";
-const { User } = require("../db/models");
+import { Request, Response, NextFunction } from 'express';
+import { Authentication } from '../utils/authentication';
+import { response } from '../helpers/response.helper';
+import { errors } from '../helpers/error.helper';
+const { User } = require('../db/models');
 
 class UsersController {
   public async register(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
-      const { email, password, role, name, address } = req.body;
+      const { email, password, role, name, address } =
+        req.body;
 
       const findUser = await User.findOne({
         where: { email: email },
-        attributes: ["id"],
+        attributes: ['id'],
       });
 
       if (findUser) {
         return errors(res, 400, {
-          message: "user already exist",
+          message: 'user already exist',
         });
       }
 
-      const hashedPassword = await Authentication.passwordHash(password);
+      const hashedPassword =
+        await Authentication.passwordHash(password);
 
       const user = await User.create({
         name,
         email,
         password: hashedPassword,
-        role,
+        role: role || 'user',
         address,
       });
 
-      const accessToken = Authentication.generateToken(user.id);
+      const accessToken = Authentication.generateToken(
+        user.id,
+        user.role,
+      );
 
       return response(res, 200, {
         name: user.name,
@@ -51,7 +56,7 @@ class UsersController {
   public async login(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
       const { email, password } = req.body;
@@ -61,17 +66,21 @@ class UsersController {
 
       if (!user) {
         return errors(res, 400, {
-          message: "Invalid authentication",
+          message: 'Invalid authentication',
         });
       }
 
-      const compare = await Authentication.passwordCompare(
+      const isMatch = await Authentication.passwordCompare(
         password,
-        user.password
+        user.password,
       );
 
-      if (compare) {
-        const accessToken = Authentication.generateToken(user.id);
+      if (isMatch) {
+        const role = user.role;
+        const accessToken = Authentication.generateToken(
+          user.id,
+          user.role,
+        );
         return response(res, 200, {
           _id: user.id,
           name: user.name,
@@ -80,7 +89,7 @@ class UsersController {
       }
 
       return errors(res, 400, {
-        message: "Invalid authentication",
+        message: 'Invalid authentication',
       });
     } catch (err) {
       next(err);
