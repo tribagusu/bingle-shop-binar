@@ -12,7 +12,7 @@ app.use(cors());
 
 app.use("/api/v1", usersRouter);
 app.use("/api/v1", productsRouter);
-app.use("/api/v1", ordersRouter);
+app.use("/api/v1/orders", ordersRouter);
 app.use("/api/v1", orderUpdateRouter);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
