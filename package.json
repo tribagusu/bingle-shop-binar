@@ -2,12 +2,12 @@
   "name": "kopiko",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "tsc": "rm -rf build/ && tsc",
     "tsw": "rm -rf build/ && tsc -w",
     "dev": "nodemon ./build/index.js",
-    "start": "node build/index.js"
+    "start": "node index.ts"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
