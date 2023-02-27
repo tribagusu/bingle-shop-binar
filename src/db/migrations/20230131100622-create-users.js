@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -8,7 +8,9 @@ module.exports = {
         primaryKey: true,
         allowNull: false,
         type: Sequelize.UUID,
-        defaultValue: Sequelize.literal("gen_random_uuid()"),
+        defaultValue: Sequelize.literal(
+          "gen_random_uuid()",
+        ),
       },
       name: {
         type: Sequelize.STRING,
@@ -30,6 +32,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      access_token: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
       created_at: {
         type: Sequelize.DATE,
         defaultValue: Date.now(),
@@ -41,9 +47,9 @@ module.exports = {
       deleted_at: {
         type: Sequelize.DATE,
       },
-    })
+    });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("users")
+    await queryInterface.dropTable("users");
   },
-}
+};

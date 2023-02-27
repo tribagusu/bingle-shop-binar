@@ -1,30 +1,23 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authorization = void 0;
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+exports.authenticated = void 0;
 const error_helper_1 = require("../helpers/error.helper");
-const authorization = (req, res, next) => {
-    if (!req.headers.authorization) {
-        return (0, error_helper_1.errors)(res, 401, { message: "not authorized" });
-    }
-    const secretKey = process.env.JWT_SECRET_KEY || "secret";
-    const token = req.headers.authorization.split(" ")[1];
+const authentication_1 = require("../utils/authentication");
+const authenticated = (req, res, next) => {
+    var _a;
     try {
-        const credential = jsonwebtoken_1.default.verify(token, secretKey);
-        if (credential) {
-            // req.app.locals.credential = credential;
-            // console.log(credential);
-            next();
+        const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
+        if (!token) {
+            return (0, error_helper_1.errors)(res, 401, { message: "Unauthorized" });
         }
-        else {
-            return (0, error_helper_1.errors)(res, 400, { message: "token invalid" });
+        const accessToken = authentication_1.Authentication.extractToken(token);
+        if (!accessToken) {
+            return (0, error_helper_1.errors)(res, 401, { message: "Unauthorized" });
         }
+        next();
     }
     catch (error) {
-        res.send(error);
+        next(error);
     }
 };
-exports.authorization = authorization;
+exports.authenticated = authenticated;

@@ -1,5 +1,5 @@
-const { Model, DataTypes } = require("sequelize")
-const sequelize = require("./sequelize")
+const { Model, DataTypes } = require("sequelize");
+const sequelize = require("./sequelize");
 
 class Users extends Model {}
 
@@ -31,6 +31,10 @@ Users.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    access_token: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   },
   {
     sequelize,
@@ -40,7 +44,7 @@ Users.init(
     createdAt: "created_at",
     updatedAt: "updated_at",
     deletedAt: "deleted_at",
-  }
-)
+  },
+);
 
-module.exports = Users
+module.exports = Users;

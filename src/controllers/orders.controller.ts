@@ -1,13 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import { response } from "../helpers/response.helper";
 import { errors } from "../helpers/error.helper";
-const { Order, Order_item, Product, User } = require("../db/models");
+const {
+  Order,
+  Order_item,
+  Product,
+  User,
+} = require("../db/models");
 
 class OrdersController {
   public async index(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
       const { user_id } = req.body;
@@ -18,7 +23,9 @@ class OrdersController {
       });
 
       if (findOrders.length === 0) {
-        return errors(res, 400, { message: "order not found" });
+        return errors(res, 400, {
+          message: "order not found",
+        });
       }
 
       return response(res, 200, { orders: findOrders });
@@ -30,7 +37,7 @@ class OrdersController {
   public async create(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
       const { user_id, cart } = req.body;
@@ -43,7 +50,7 @@ class OrdersController {
 
       if (!isUser) {
         return errors(res, 400, {
-          message: "user not exist",
+          message: "Unauthorized",
         });
       }
 
@@ -104,7 +111,7 @@ class OrdersController {
   public async show(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
       const { id } = req.params;
@@ -123,13 +130,15 @@ class OrdersController {
         attributes: ["id", "user_id", "status", "total"],
       });
       if (!id) {
-        return errors(res, 400, { message: "order not found" });
+        return errors(res, 400, {
+          message: "order not found",
+        });
       }
 
       // check if user authorized
-      if (user_id !== findOrder.user_id) {
-        return errors(res, 400, { message: "user not authorized" });
-      }
+      // if (user_id !== findOrder.user_id) {
+      //   return errors(res, 400, { message: "user not authorized" });
+      // }
 
       return response(res, 200, { order: findOrder });
     } catch (err) {
@@ -140,7 +149,7 @@ class OrdersController {
   public async update(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
       const { id } = req.params;
@@ -149,13 +158,15 @@ class OrdersController {
       // find order
       const isOrder = await Order.findByPk(id);
       if (!isOrder) {
-        return errors(res, 400, { message: "order not found" });
+        return errors(res, 400, {
+          message: "order not found",
+        });
       }
 
       // check if user authorized
       if (user_id !== isOrder.user_id) {
         return errors(res, 400, {
-          message: "user not authorized",
+          message: "Unauthorized",
         });
       }
 
@@ -164,10 +175,12 @@ class OrdersController {
         {
           status: "paid",
         },
-        { where: { id } }
+        { where: { id } },
       );
 
-      return response(res, 200, { message: "status updated" });
+      return response(res, 200, {
+        message: "status updated",
+      });
     } catch (err) {
       next(err);
     }
@@ -176,7 +189,7 @@ class OrdersController {
   public async delete(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
       const { id } = req.params;
@@ -184,7 +197,9 @@ class OrdersController {
       // find orders
       const order = await Order.findByPk(id);
       if (!order) {
-        return errors(res, 400, { message: "order not found" });
+        return errors(res, 400, {
+          message: "order not found",
+        });
       }
     } catch (err) {
       next(err);

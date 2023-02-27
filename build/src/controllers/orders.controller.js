@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.orderController = void 0;
 const response_helper_1 = require("../helpers/response.helper");
 const error_helper_1 = require("../helpers/error.helper");
-const { Order, Order_item, Product, User } = require("../db/models");
+const { Order, Order_item, Product, User, } = require("../db/models");
 class OrdersController {
     index(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -23,7 +23,9 @@ class OrdersController {
                     attributes: ["id", "status", "total", "user_id"],
                 });
                 if (findOrders.length === 0) {
-                    return (0, error_helper_1.errors)(res, 400, { message: "order not found" });
+                    return (0, error_helper_1.errors)(res, 400, {
+                        message: "order not found",
+                    });
                 }
                 return (0, response_helper_1.response)(res, 200, { orders: findOrders });
             }
@@ -43,7 +45,7 @@ class OrdersController {
                 });
                 if (!isUser) {
                     return (0, error_helper_1.errors)(res, 400, {
-                        message: "user not exist",
+                        message: "Unauthorized",
                     });
                 }
                 // find total price
@@ -114,12 +116,14 @@ class OrdersController {
                     attributes: ["id", "user_id", "status", "total"],
                 });
                 if (!id) {
-                    return (0, error_helper_1.errors)(res, 400, { message: "order not found" });
+                    return (0, error_helper_1.errors)(res, 400, {
+                        message: "order not found",
+                    });
                 }
                 // check if user authorized
-                if (user_id !== findOrder.user_id) {
-                    return (0, error_helper_1.errors)(res, 400, { message: "user not authorized" });
-                }
+                // if (user_id !== findOrder.user_id) {
+                //   return errors(res, 400, { message: "user not authorized" });
+                // }
                 return (0, response_helper_1.response)(res, 200, { order: findOrder });
             }
             catch (err) {
@@ -135,19 +139,23 @@ class OrdersController {
                 // find order
                 const isOrder = yield Order.findByPk(id);
                 if (!isOrder) {
-                    return (0, error_helper_1.errors)(res, 400, { message: "order not found" });
+                    return (0, error_helper_1.errors)(res, 400, {
+                        message: "order not found",
+                    });
                 }
                 // check if user authorized
                 if (user_id !== isOrder.user_id) {
                     return (0, error_helper_1.errors)(res, 400, {
-                        message: "user not authorized",
+                        message: "Unauthorized",
                     });
                 }
                 // udpate order
                 yield Order.update({
                     status: "paid",
                 }, { where: { id } });
-                return (0, response_helper_1.response)(res, 200, { message: "status updated" });
+                return (0, response_helper_1.response)(res, 200, {
+                    message: "status updated",
+                });
             }
             catch (err) {
                 next(err);
@@ -161,7 +169,9 @@ class OrdersController {
                 // find orders
                 const order = yield Order.findByPk(id);
                 if (!order) {
-                    return (0, error_helper_1.errors)(res, 400, { message: "order not found" });
+                    return (0, error_helper_1.errors)(res, 400, {
+                        message: "order not found",
+                    });
                 }
             }
             catch (err) {

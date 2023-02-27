@@ -1,30 +1,28 @@
-import { Request, Response, NextFunction } from "express"
-import jwt from "jsonwebtoken"
-import { errors } from "../helpers/error.helper"
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { errors } from "../helpers/error.helper";
+import { Authentication } from "../utils/authentication";
 
-export const authorization = (
+export const authenticated = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): unknown => {
-  if (!req.headers.authorization) {
-    return errors(res, 401, { message: "not authorized" })
-  }
-
-  const secretKey = process.env.JWT_SECRET_KEY || "secret"
-  const token: string = req.headers.authorization.split(" ")[1]
-
   try {
-    const credential: string | object = jwt.verify(token, secretKey)
+    const token: string =
+      req.headers.authorization?.split(" ")[1];
 
-    if (credential) {
-      // req.app.locals.credential = credential;
-      // console.log(credential);
-      next()
-    } else {
-      return errors(res, 400, { message: "token invalid" })
+    if (!token) {
+      return errors(res, 401, { message: "Unauthorized" });
     }
+
+    const accessToken = Authentication.extractToken(token);
+
+    if (!accessToken) {
+      return errors(res, 401, { message: "Unauthorized" });
+    }
+    next();
   } catch (error) {
-    res.send(error)
+    next(error);
   }
-}
+};

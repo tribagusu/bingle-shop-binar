@@ -2,12 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.productsRouter = void 0;
 const express_1 = require("express");
-const authorization_1 = require("../middlewares/authorization");
 const products_validator_1 = require("../middlewares/products.validator");
 const products_controller_1 = require("../controllers/products.controller");
+const authorization_1 = require("../middlewares/authorization");
 exports.productsRouter = (0, express_1.Router)();
-exports.productsRouter.get("/products", products_controller_1.productController.index);
-exports.productsRouter.post("/products", authorization_1.authorization, products_validator_1.createValidator, products_controller_1.productController.create);
-exports.productsRouter.get("/products/:id", products_controller_1.productController.show);
-exports.productsRouter.put("/products/:id", authorization_1.authorization, products_validator_1.updateValidator, products_controller_1.productController.update);
-exports.productsRouter.delete("/products/:id", authorization_1.authorization, products_controller_1.productController.delete);
+exports.productsRouter.get("/", authorization_1.authenticated, products_controller_1.productController.index);
+exports.productsRouter.post("/", products_validator_1.createValidator, authorization_1.authenticated, products_controller_1.productController.create);
+exports.productsRouter.get("/:id", products_controller_1.productController.show);
+exports.productsRouter.put("/:id", products_validator_1.updateValidator, products_controller_1.productController.update);
+exports.productsRouter.delete("/:id", products_controller_1.productController.delete);

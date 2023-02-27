@@ -16,21 +16,68 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Authentication = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config({ path: ".env" });
 class Authentication {
 }
 exports.Authentication = Authentication;
 _a = Authentication;
-Authentication.passwordHash = (password) => {
-    return bcrypt_1.default.hash(password, 10);
+Authentication.hashing = (text) => {
+    return bcrypt_1.default.hash(text, 10);
 };
-Authentication.passwordCompare = (text, encryptedText) => __awaiter(void 0, void 0, void 0, function* () {
+Authentication.hashCompare = (text, encryptedText) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield bcrypt_1.default.compare(text, encryptedText);
     return result;
 });
 Authentication.generateToken = (id, role) => {
-    const secretKey = process.env.JWT_SECRET_KEY || 'secret';
-    const accessToken = jsonwebtoken_1.default.sign({ user: { id, role } }, secretKey, {
-        expiresIn: '30 Days',
+    const secretKey = process.env.JWT_SECRET_KEY;
+    const accessToken = jsonwebtoken_1.default.sign({
+        user: {
+            id: id,
+            role: role,
+        },
+    }, secretKey, {
+        expiresIn: "20s",
     });
     return accessToken;
+};
+Authentication.generateRefreshToken = (id, role) => {
+    const secretKey = process.env.JWT_REFRESH_KEY;
+    const accessToken = jsonwebtoken_1.default.sign({
+        user: {
+            id: id,
+            role: role,
+        },
+    }, secretKey, {
+        expiresIn: "30d",
+    });
+    return accessToken;
+};
+Authentication.extractToken = (token) => {
+    const secretKey = process.env
+        .JWT_SECRET_KEY;
+    let data;
+    jsonwebtoken_1.default.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+            data = null;
+        }
+        else {
+            data = decoded;
+        }
+    });
+    return data;
+};
+Authentication.extractRefreshToken = (token) => {
+    const secretKey = process.env
+        .JWT_REFRESH_KEY;
+    let data;
+    jsonwebtoken_1.default.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+            data = null;
+        }
+        else {
+            data = decoded;
+        }
+    });
+    return data;
 };

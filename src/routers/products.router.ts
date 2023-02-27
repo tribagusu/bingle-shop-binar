@@ -1,25 +1,28 @@
-import { Router } from "express"
-import { authorization } from "../middlewares/authorization"
+import { Router } from "express";
 import {
   createValidator,
   updateValidator,
-} from "../middlewares/products.validator"
-import { productController } from "../controllers/products.controller"
+} from "../middlewares/products.validator";
+import { productController } from "../controllers/products.controller";
+import { authenticated } from "../middlewares/authorization";
 
-export const productsRouter: Router = Router()
+export const productsRouter: Router = Router();
 
-productsRouter.get("/products", productController.index)
+productsRouter.get(
+  "/",
+  authenticated,
+  productController.index,
+);
 productsRouter.post(
-  "/products",
-  authorization,
+  "/",
   createValidator,
-  productController.create
-)
-productsRouter.get("/products/:id", productController.show)
+  authenticated,
+  productController.create,
+);
+productsRouter.get("/:id", productController.show);
 productsRouter.put(
-  "/products/:id",
-  authorization,
+  "/:id",
   updateValidator,
-  productController.update
-)
-productsRouter.delete("/products/:id", authorization, productController.delete)
+  productController.update,
+);
+productsRouter.delete("/:id", productController.delete);

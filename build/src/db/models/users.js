@@ -29,6 +29,10 @@ Users.init({
         type: DataTypes.STRING,
         allowNull: true,
     },
+    access_token: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
 }, {
     sequelize,
     timestamps: true,

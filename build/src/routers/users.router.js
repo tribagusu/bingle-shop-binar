@@ -7,3 +7,4 @@ const users_validator_1 = require("../middlewares/users.validator");
 exports.usersRouter = (0, express_1.Router)();
 exports.usersRouter.post("/register", users_validator_1.registerValidator, users_controller_1.usersController.register);
 exports.usersRouter.post("/login", users_validator_1.loginValidator, users_controller_1.usersController.login);
+exports.usersRouter.get("/refresh-token", users_controller_1.usersController.refreshToken);

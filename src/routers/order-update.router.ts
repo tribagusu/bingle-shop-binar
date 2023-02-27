@@ -5,7 +5,7 @@ import { updateValidator } from "../middlewares/orders.validator";
 export const orderUpdateRouter: Router = Router();
 
 orderUpdateRouter.put(
-  "/order-update/:id",
+  "/:id",
   updateValidator,
-  orderController.update
+  orderController.update,
 );
