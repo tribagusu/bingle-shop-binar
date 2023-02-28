@@ -4,18 +4,32 @@ import {
   getValidator,
   createValidator,
 } from "../middlewares/orders.validator";
+import {
+  authenticated,
+  adminRole,
+} from "../middlewares/authorization";
 
 export const ordersRouter: Router = Router();
 
-ordersRouter.get("/", getValidator, orderController.index);
+ordersRouter.get(
+  "/",
+  getValidator,
+  authenticated,
+  orderController.index,
+);
 ordersRouter.post(
   "/",
   createValidator,
+  authenticated,
   orderController.create,
 );
 ordersRouter.get(
   "/:id",
-  // getValidator,
+  authenticated,
   orderController.show,
 );
-ordersRouter.delete("/:id", orderController.delete);
+ordersRouter.delete(
+  "/:id",
+  authenticated,
+  orderController.delete,
+);

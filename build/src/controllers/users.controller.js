@@ -37,9 +37,8 @@ class UsersController {
                     role: role || "user",
                     address,
                 });
-                const hashedRole = yield authentication_1.Authentication.hashing(user.role);
-                const accessToken = authentication_1.Authentication.generateToken(user.id, hashedRole);
-                const refreshToken = authentication_1.Authentication.generateRefreshToken(user.id, hashedRole);
+                const accessToken = authentication_1.Authentication.generateToken(user.id);
+                const refreshToken = authentication_1.Authentication.generateRefreshToken(user.id);
                 res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
                     maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -72,9 +71,8 @@ class UsersController {
                         message: "Invalid authentication",
                     });
                 }
-                const hashedRole = yield authentication_1.Authentication.hashing(user.role);
-                const accessToken = authentication_1.Authentication.generateToken(user.id, hashedRole);
-                const refreshToken = authentication_1.Authentication.generateRefreshToken(user.id, hashedRole);
+                const accessToken = authentication_1.Authentication.generateToken(user.id);
+                const refreshToken = authentication_1.Authentication.generateRefreshToken(user.id);
                 user.access_token = refreshToken;
                 yield user.save();
                 res.cookie("refreshToken", refreshToken, {
@@ -83,7 +81,6 @@ class UsersController {
                 });
                 return (0, response_helper_1.response)(res, 200, {
                     _id: user.id,
-                    name: user.name,
                     access_token: accessToken,
                 });
             }
@@ -98,21 +95,83 @@ class UsersController {
             try {
                 const refreshToken = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.refreshToken;
                 if (!refreshToken) {
-                    return (0, error_helper_1.errors)(res, 401, {
+                    return (0, error_helper_1.errors)(res, 403, {
                         message: "Unauthorized",
                     });
                 }
-                const decodedToken = authentication_1.Authentication.extractRefreshToken(refreshToken);
-                if (!decodedToken) {
-                    return (0, error_helper_1.errors)(res, 401, {
+                const decodedRefreshToken = authentication_1.Authentication.extractRefreshToken(refreshToken);
+                if (!decodedRefreshToken) {
+                    return (0, error_helper_1.errors)(res, 403, {
                         message: "Unauthorized",
                     });
                 }
-                const newToken = authentication_1.Authentication.generateToken(decodedToken.user.id, decodedToken.user.role);
+                const newToken = authentication_1.Authentication.generateToken(decodedRefreshToken.id);
                 return (0, response_helper_1.response)(res, 200, {
-                    _id: decodedToken.user.id,
-                    name: decodedToken.user.name,
                     access_token: newToken,
+                });
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+    }
+    userDetail(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = res.locals.userId;
+                const user = yield User.findOne({
+                    where: {
+                        id: userId,
+                    },
+                });
+                // user not found
+                if (!user) {
+                    return (0, error_helper_1.errors)(res, 404, {
+                        message: "Not found",
+                    });
+                }
+                const userData = {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    address: user.address,
+                };
+                return (0, response_helper_1.response)(res, 200, {
+                    user: userData,
+                });
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+    }
+    logout(req, res, next) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const refreshToken = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.refreshToken;
+                if (!refreshToken) {
+                    return res
+                        .status(200)
+                        .json({ message: "User logged out" });
+                }
+                const userId = res.locals.userId;
+                const user = yield User.findOne({
+                    where: {
+                        id: userId,
+                    },
+                });
+                if (!user) {
+                    res.clearCookie("refreshToken");
+                    return (0, response_helper_1.response)(res, 200, {
+                        message: "User logged out",
+                    });
+                }
+                yield User.update({ access_token: null }, { where: { id: user.id } });
+                res.clearCookie("refreshToken");
+                return (0, response_helper_1.response)(res, 200, {
+                    message: "User logged out",
                 });
             }
             catch (err) {

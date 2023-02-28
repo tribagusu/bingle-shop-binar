@@ -38,20 +38,12 @@ class UsersController {
         address,
       });
 
-      const hashedRole = await Authentication.hashing(
-        user.role,
-      );
-
       const accessToken = Authentication.generateToken(
         user.id,
-        hashedRole,
       );
 
       const refreshToken =
-        Authentication.generateRefreshToken(
-          user.id,
-          hashedRole,
-        );
+        Authentication.generateRefreshToken(user.id);
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
@@ -95,20 +87,12 @@ class UsersController {
         });
       }
 
-      const hashedRole = await Authentication.hashing(
-        user.role,
-      );
-
       const accessToken = Authentication.generateToken(
         user.id,
-        hashedRole,
       );
 
       const refreshToken =
-        Authentication.generateRefreshToken(
-          user.id,
-          hashedRole,
-        );
+        Authentication.generateRefreshToken(user.id);
 
       user.access_token = refreshToken;
       await user.save();
@@ -119,7 +103,6 @@ class UsersController {
 
       return response(res, 200, {
         _id: user.id,
-        name: user.name,
         access_token: accessToken,
       });
     } catch (err) {
@@ -136,29 +119,105 @@ class UsersController {
       const refreshToken = req.cookies?.refreshToken;
 
       if (!refreshToken) {
-        return errors(res, 401, {
+        return errors(res, 403, {
           message: "Unauthorized",
         });
       }
 
-      const decodedToken =
+      const decodedRefreshToken =
         Authentication.extractRefreshToken(refreshToken);
 
-      if (!decodedToken) {
-        return errors(res, 401, {
+      if (!decodedRefreshToken) {
+        return errors(res, 403, {
           message: "Unauthorized",
         });
       }
 
       const newToken = Authentication.generateToken(
-        decodedToken.user.id,
-        decodedToken.user.role,
+        decodedRefreshToken.id,
       );
 
       return response(res, 200, {
-        _id: decodedToken.user.id,
-        name: decodedToken.user.name,
         access_token: newToken,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public async userDetail(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response> {
+    try {
+      const userId = res.locals.userId;
+      const user = await User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      // user not found
+      if (!user) {
+        return errors(res, 404, {
+          message: "Not found",
+        });
+      }
+
+      const userData = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        address: user.address,
+      };
+
+      return response(res, 200, {
+        user: userData,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  public async logout(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response> {
+    try {
+      const refreshToken = req.cookies?.refreshToken;
+
+      if (!refreshToken) {
+        return res
+          .status(200)
+          .json({ message: "User logged out" });
+      }
+
+      const userId = res.locals.userId;
+      const user = await User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      if (!user) {
+        res.clearCookie("refreshToken");
+        return response(res, 200, {
+          message: "User logged out",
+        });
+      }
+
+      await User.update(
+        { access_token: null },
+        { where: { id: user.id } },
+      );
+
+      res.clearCookie("refreshToken");
+
+      return response(res, 200, {
+        message: "User logged out",
       });
     } catch (err) {
       next(err);

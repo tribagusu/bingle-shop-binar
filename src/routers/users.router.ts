@@ -4,6 +4,7 @@ import {
   registerValidator,
   loginValidator,
 } from "../middlewares/users.validator";
+import { authenticated } from "../middlewares/authorization";
 
 export const usersRouter: Router = Router();
 
@@ -19,5 +20,16 @@ usersRouter.post(
 );
 usersRouter.get(
   "/refresh-token",
+  authenticated,
   usersController.refreshToken,
+);
+usersRouter.get(
+  "/current-user",
+  authenticated,
+  usersController.userDetail,
+);
+usersRouter.get(
+  "/logout",
+  authenticated,
+  usersController.logout,
 );

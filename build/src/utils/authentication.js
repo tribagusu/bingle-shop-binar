@@ -29,29 +29,23 @@ Authentication.hashCompare = (text, encryptedText) => __awaiter(void 0, void 0, 
     const result = yield bcrypt_1.default.compare(text, encryptedText);
     return result;
 });
-Authentication.generateToken = (id, role) => {
+Authentication.generateToken = (id) => {
     const secretKey = process.env.JWT_SECRET_KEY;
     const accessToken = jsonwebtoken_1.default.sign({
-        user: {
-            id: id,
-            role: role,
-        },
+        id,
     }, secretKey, {
-        expiresIn: "20s",
+        expiresIn: "1200s",
     });
     return accessToken;
 };
-Authentication.generateRefreshToken = (id, role) => {
+Authentication.generateRefreshToken = (id) => {
     const secretKey = process.env.JWT_REFRESH_KEY;
-    const accessToken = jsonwebtoken_1.default.sign({
-        user: {
-            id: id,
-            role: role,
-        },
+    const refreshToken = jsonwebtoken_1.default.sign({
+        id,
     }, secretKey, {
         expiresIn: "30d",
     });
-    return accessToken;
+    return refreshToken;
 };
 Authentication.extractToken = (token) => {
     const secretKey = process.env

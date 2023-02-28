@@ -21,46 +21,34 @@ export class Authentication {
     return result;
   };
 
-  public static generateToken = (
-    id: string,
-    role: string,
-  ) => {
+  public static generateToken = (id: string) => {
     const secretKey: string = process.env.JWT_SECRET_KEY;
 
     const accessToken = jwt.sign(
       {
-        user: {
-          id: id,
-          role: role,
-        },
+        id,
       },
       secretKey,
       {
-        expiresIn: "20s",
+        expiresIn: "1200s",
       },
     );
     return accessToken;
   };
 
-  public static generateRefreshToken = (
-    id: string,
-    role: string,
-  ) => {
+  public static generateRefreshToken = (id: string) => {
     const secretKey: string = process.env.JWT_REFRESH_KEY;
 
-    const accessToken = jwt.sign(
+    const refreshToken = jwt.sign(
       {
-        user: {
-          id: id,
-          role: role,
-        },
+        id,
       },
       secretKey,
       {
         expiresIn: "30d",
       },
     );
-    return accessToken;
+    return refreshToken;
   };
 
   public static extractToken = (token: string) => {
