@@ -8,11 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.usersController = void 0;
-const authentication_1 = require("../utils/authentication");
-const response_helper_1 = require("../helpers/response.helper");
-const error_helper_1 = require("../helpers/error.helper");
+const hash_1 = __importDefault(require("../modules/hash"));
+const jwt_1 = __importDefault(require("../modules/jwt"));
+const response_1 = require("../helpers/response");
+const error_1 = require("../helpers/error");
 const { User } = require("../db/models");
 class UsersController {
     register(req, res, next) {
@@ -25,27 +29,20 @@ class UsersController {
                 });
                 // user already exist
                 if (findUser) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "Invalid authentication",
                     });
                 }
-                const hashedPassword = yield authentication_1.Authentication.hashing(password);
-                const user = yield User.create({
+                const hashedPassword = yield hash_1.default.hashing(password);
+                yield User.create({
                     name,
                     email,
                     password: hashedPassword,
                     role: role || "user",
                     address,
                 });
-                const accessToken = authentication_1.Authentication.generateToken(user.id);
-                const refreshToken = authentication_1.Authentication.generateRefreshToken(user.id);
-                res.cookie("refreshToken", refreshToken, {
-                    httpOnly: true,
-                    maxAge: 30 * 24 * 60 * 60 * 1000,
-                });
-                return (0, response_helper_1.response)(res, 200, {
-                    _id: user.id,
-                    access_token: accessToken,
+                return (0, response_1.createResponse)(res, 200, {
+                    message: "User created",
                 });
             }
             catch (err) {
@@ -61,27 +58,26 @@ class UsersController {
                     where: { email: email },
                 });
                 if (!user) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "Invalid authentication",
                     });
                 }
-                const isMatched = yield authentication_1.Authentication.hashCompare(password, user.password);
+                const isMatched = yield hash_1.default.compare(password, user.password);
                 if (!isMatched) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "Invalid authentication",
                     });
                 }
-                const accessToken = authentication_1.Authentication.generateToken(user.id);
-                const refreshToken = authentication_1.Authentication.generateRefreshToken(user.id);
-                user.access_token = refreshToken;
+                const accessToken = jwt_1.default.signToken(user.id);
+                const refreshToken = jwt_1.default.signRefreshToken(user.id);
+                user.refresh_token = refreshToken;
                 yield user.save();
-                res.cookie("refreshToken", refreshToken, {
+                res.cookie("jwt", refreshToken, {
                     httpOnly: true,
                     maxAge: 30 * 24 * 60 * 60 * 1000,
                 });
-                return (0, response_helper_1.response)(res, 200, {
-                    _id: user.id,
-                    access_token: accessToken,
+                return (0, response_1.createResponse)(res, 200, {
+                    accessToken: accessToken,
                 });
             }
             catch (err) {
@@ -93,21 +89,35 @@ class UsersController {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const refreshToken = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.refreshToken;
+                const refreshToken = (_a = req === null || req === void 0 ? void 0 : req.cookies) === null || _a === void 0 ? void 0 : _a.jwt;
                 if (!refreshToken) {
-                    return (0, error_helper_1.errors)(res, 403, {
+                    return (0, error_1.createErrors)(res, 401, {
                         message: "Unauthorized",
                     });
                 }
-                const decodedRefreshToken = authentication_1.Authentication.extractRefreshToken(refreshToken);
-                if (!decodedRefreshToken) {
-                    return (0, error_helper_1.errors)(res, 403, {
-                        message: "Unauthorized",
+                // find the user
+                const user = yield User.findOne({
+                    where: {
+                        refresh_token: refreshToken,
+                    },
+                });
+                // detected reuse or hack
+                if (!user) {
+                    return (0, error_1.createErrors)(res, 403, {
+                        message: "Forbidden",
                     });
                 }
-                const newToken = authentication_1.Authentication.generateToken(decodedRefreshToken.id);
-                return (0, response_helper_1.response)(res, 200, {
-                    access_token: newToken,
+                const decodedRefreshToken = jwt_1.default.verifyRefreshToken(refreshToken);
+                // detected reuse or hack
+                if (decodedRefreshToken.id !== user.id) {
+                    return (0, error_1.createErrors)(res, 403, {
+                        message: "Forbidden",
+                    });
+                }
+                // issue new acces token
+                const newAccessToken = jwt_1.default.signToken(decodedRefreshToken.id);
+                return (0, response_1.createResponse)(res, 200, {
+                    accessToken: newAccessToken,
                 });
             }
             catch (err) {
@@ -115,7 +125,7 @@ class UsersController {
             }
         });
     }
-    userDetail(req, res, next) {
+    currentUser(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const userId = res.locals.userId;
@@ -126,7 +136,7 @@ class UsersController {
                 });
                 // user not found
                 if (!user) {
-                    return (0, error_helper_1.errors)(res, 404, {
+                    return (0, error_1.createErrors)(res, 404, {
                         message: "Not found",
                     });
                 }
@@ -137,7 +147,7 @@ class UsersController {
                     role: user.role,
                     address: user.address,
                 };
-                return (0, response_helper_1.response)(res, 200, {
+                return (0, response_1.createResponse)(res, 200, {
                     user: userData,
                 });
             }
@@ -150,27 +160,30 @@ class UsersController {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const refreshToken = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.refreshToken;
+                const refreshToken = (_a = req === null || req === void 0 ? void 0 : req.cookies) === null || _a === void 0 ? void 0 : _a.jwt;
                 if (!refreshToken) {
                     return res
                         .status(200)
                         .json({ message: "User logged out" });
                 }
-                const userId = res.locals.userId;
                 const user = yield User.findOne({
                     where: {
-                        id: userId,
+                        refresh_token: refreshToken,
                     },
                 });
+                // detected hack
                 if (!user) {
-                    res.clearCookie("refreshToken");
-                    return (0, response_helper_1.response)(res, 200, {
+                    res.clearCookie("jwt");
+                    return (0, response_1.createResponse)(res, 200, {
                         message: "User logged out",
                     });
                 }
-                yield User.update({ access_token: null }, { where: { id: user.id } });
-                res.clearCookie("refreshToken");
-                return (0, response_helper_1.response)(res, 200, {
+                // delete token in jwt
+                res.clearCookie("jwt");
+                // delete refresh token in db
+                user.refresh_token = null;
+                user.save();
+                return (0, response_1.createResponse)(res, 200, {
                     message: "User logged out",
                 });
             }

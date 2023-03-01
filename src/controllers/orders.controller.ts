@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { response } from "../helpers/response.helper";
-import { errors } from "../helpers/error.helper";
+import { createResponse } from "../helpers/response";
+import { createErrors } from "../helpers/error";
 const {
   Order,
   Order_item,
@@ -23,12 +23,14 @@ class OrdersController {
       });
 
       if (findOrders.length === 0) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "order not found",
         });
       }
 
-      return response(res, 200, { orders: findOrders });
+      return createResponse(res, 200, {
+        orders: findOrders,
+      });
     } catch (err) {
       next(err);
     }
@@ -49,7 +51,7 @@ class OrdersController {
       });
 
       if (!isUser) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "Unauthorized",
         });
       }
@@ -100,7 +102,7 @@ class OrdersController {
         order_items: orderItems,
       };
 
-      return response(res, 200, {
+      return createResponse(res, 200, {
         order,
       });
     } catch (err) {
@@ -130,7 +132,7 @@ class OrdersController {
         attributes: ["id", "user_id", "status", "total"],
       });
       if (!id) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "order not found",
         });
       }
@@ -140,7 +142,7 @@ class OrdersController {
       //   return errors(res, 400, { message: "user not authorized" });
       // }
 
-      return response(res, 200, { order: findOrder });
+      return createResponse(res, 200, { order: findOrder });
     } catch (err) {
       next(err);
     }
@@ -158,14 +160,14 @@ class OrdersController {
       // find order
       const isOrder = await Order.findByPk(id);
       if (!isOrder) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "order not found",
         });
       }
 
       // check if user authorized
       if (user_id !== isOrder.user_id) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "Unauthorized",
         });
       }
@@ -178,7 +180,7 @@ class OrdersController {
         { where: { id } },
       );
 
-      return response(res, 200, {
+      return createResponse(res, 200, {
         message: "status updated",
       });
     } catch (err) {
@@ -197,7 +199,7 @@ class OrdersController {
       // find orders
       const order = await Order.findByPk(id);
       if (!order) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "order not found",
         });
       }

@@ -8,23 +8,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.adminRole = exports.authenticated = void 0;
-const error_helper_1 = require("../helpers/error.helper");
-const authentication_1 = require("../utils/authentication");
+const error_1 = require("../helpers/error");
+const jwt_1 = __importDefault(require("../modules/jwt"));
 const { User } = require("../db/models");
 const authenticated = (req, res, next) => {
     var _a;
     try {
         const accessToken = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
         if (!accessToken) {
-            return (0, error_helper_1.errors)(res, 401, { message: "Unauthorized" });
+            return (0, error_1.createErrors)(res, 401, {
+                message: "Unauthorized",
+            });
         }
-        const decodedToken = authentication_1.Authentication.extractToken(accessToken);
-        if (!decodedToken) {
-            return (0, error_helper_1.errors)(res, 401, { message: "Unauthorized" });
+        const decodedAccessToken = jwt_1.default.verifyToken(accessToken);
+        if (!decodedAccessToken) {
+            return (0, error_1.createErrors)(res, 401, {
+                message: "Unauthorized",
+            });
         }
-        res.locals.userId = decodedToken === null || decodedToken === void 0 ? void 0 : decodedToken.id;
+        res.locals.userId = decodedAccessToken === null || decodedAccessToken === void 0 ? void 0 : decodedAccessToken.id;
         next();
     }
     catch (error) {
@@ -39,7 +46,9 @@ const adminRole = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             where: { id: userId },
         });
         if (user.role !== "admin") {
-            return (0, error_helper_1.errors)(res, 403, { message: "Forbidden" });
+            return (0, error_1.createErrors)(res, 403, {
+                message: "Forbidden",
+            });
         }
         next();
     }

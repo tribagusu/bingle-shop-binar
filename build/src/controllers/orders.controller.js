@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.orderController = void 0;
-const response_helper_1 = require("../helpers/response.helper");
-const error_helper_1 = require("../helpers/error.helper");
+const response_1 = require("../helpers/response");
+const error_1 = require("../helpers/error");
 const { Order, Order_item, Product, User, } = require("../db/models");
 class OrdersController {
     index(req, res, next) {
@@ -23,11 +23,13 @@ class OrdersController {
                     attributes: ["id", "status", "total", "user_id"],
                 });
                 if (findOrders.length === 0) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "order not found",
                     });
                 }
-                return (0, response_helper_1.response)(res, 200, { orders: findOrders });
+                return (0, response_1.createResponse)(res, 200, {
+                    orders: findOrders,
+                });
             }
             catch (err) {
                 next(err);
@@ -44,7 +46,7 @@ class OrdersController {
                     attributes: ["id"],
                 });
                 if (!isUser) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "Unauthorized",
                     });
                 }
@@ -89,7 +91,7 @@ class OrdersController {
                     total: totalPrice,
                     order_items: orderItems,
                 };
-                return (0, response_helper_1.response)(res, 200, {
+                return (0, response_1.createResponse)(res, 200, {
                     order,
                 });
             }
@@ -116,7 +118,7 @@ class OrdersController {
                     attributes: ["id", "user_id", "status", "total"],
                 });
                 if (!id) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "order not found",
                     });
                 }
@@ -124,7 +126,7 @@ class OrdersController {
                 // if (user_id !== findOrder.user_id) {
                 //   return errors(res, 400, { message: "user not authorized" });
                 // }
-                return (0, response_helper_1.response)(res, 200, { order: findOrder });
+                return (0, response_1.createResponse)(res, 200, { order: findOrder });
             }
             catch (err) {
                 next(err);
@@ -139,13 +141,13 @@ class OrdersController {
                 // find order
                 const isOrder = yield Order.findByPk(id);
                 if (!isOrder) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "order not found",
                     });
                 }
                 // check if user authorized
                 if (user_id !== isOrder.user_id) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "Unauthorized",
                     });
                 }
@@ -153,7 +155,7 @@ class OrdersController {
                 yield Order.update({
                     status: "paid",
                 }, { where: { id } });
-                return (0, response_helper_1.response)(res, 200, {
+                return (0, response_1.createResponse)(res, 200, {
                     message: "status updated",
                 });
             }
@@ -169,7 +171,7 @@ class OrdersController {
                 // find orders
                 const order = yield Order.findByPk(id);
                 if (!order) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "order not found",
                     });
                 }

@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from "express";
-import { response } from "../helpers/response.helper";
-import { errors } from "../helpers/error.helper";
+import { createResponse } from "../helpers/response";
+import { createErrors } from "../helpers/error";
 const { Product } = require("../db/models");
 
 class ProductsController {
   public async index(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     const { page, limit } = req.query;
     const pageInt = Number(page);
@@ -28,7 +28,7 @@ class ProductsController {
         // offset: offset,
       });
 
-      return response(res, 200, { products });
+      return createResponse(res, 200, { products });
     } catch (err) {
       next(err);
     }
@@ -37,7 +37,7 @@ class ProductsController {
   public async create(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
       const { sku } = req.body;
@@ -48,7 +48,7 @@ class ProductsController {
         attributes: ["sku"],
       });
       if (findProduct) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "product already exist",
         });
       }
@@ -56,7 +56,7 @@ class ProductsController {
       // create product
       const product = await Product.create(req.body);
 
-      return response(res, 200, { product });
+      return createResponse(res, 200, { product });
     } catch (err) {
       next(err);
     }
@@ -65,7 +65,7 @@ class ProductsController {
   public async show(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
       const { id } = req.params;
@@ -74,12 +74,12 @@ class ProductsController {
 
       // check if product exist
       if (!product) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "product does not exist",
         });
       }
 
-      return response(res, 200, { product });
+      return createResponse(res, 200, { product });
     } catch (err) {
       next(err);
     }
@@ -88,7 +88,7 @@ class ProductsController {
   public async update(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
       const { id } = req.params;
@@ -98,15 +98,17 @@ class ProductsController {
 
       // check if product exist
       if (!findProduct) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "product does not exist",
         });
       }
 
       // update product
-      const product = await Product.update(req.body, { where: { id } });
+      const product = await Product.update(req.body, {
+        where: { id },
+      });
 
-      return response(res, 200, { product });
+      return createResponse(res, 200, { product });
     } catch (err) {
       next(err);
     }
@@ -115,7 +117,7 @@ class ProductsController {
   public async delete(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response> {
     try {
       const { id } = req.params;
@@ -125,7 +127,7 @@ class ProductsController {
 
       // check if product exist
       if (!findProduct) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "product does not exist",
         });
       }
@@ -135,7 +137,9 @@ class ProductsController {
         where: { id },
       });
 
-      return response(res, 200, { message: "product deleted" });
+      return createResponse(res, 200, {
+        message: "product deleted",
+      });
     } catch (err) {
       next(err);
     }

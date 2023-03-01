@@ -20,13 +20,12 @@ usersRouter.post(
 );
 usersRouter.get(
   "/refresh-token",
-  authenticated,
   usersController.refreshToken,
 );
 usersRouter.get(
   "/current-user",
   authenticated,
-  usersController.userDetail,
+  usersController.currentUser,
 );
 usersRouter.get(
   "/logout",

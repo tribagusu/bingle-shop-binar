@@ -1,27 +1,9 @@
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env" });
 
-export class Authentication {
-  public static hashing = (
-    text: string,
-  ): Promise<string> => {
-    return bcrypt.hash(text, 10);
-  };
-
-  public static hashCompare = async (
-    text: string,
-    encryptedText: string,
-  ) => {
-    const result = await bcrypt.compare(
-      text,
-      encryptedText,
-    );
-    return result;
-  };
-
-  public static generateToken = (id: string) => {
+export default class ModuleJwt {
+  public static signToken = (id: string) => {
     const secretKey: string = process.env.JWT_SECRET_KEY;
 
     const accessToken = jwt.sign(
@@ -30,13 +12,13 @@ export class Authentication {
       },
       secretKey,
       {
-        expiresIn: "1200s",
+        expiresIn: "60s",
       },
     );
     return accessToken;
   };
 
-  public static generateRefreshToken = (id: string) => {
+  public static signRefreshToken = (id: string) => {
     const secretKey: string = process.env.JWT_REFRESH_KEY;
 
     const refreshToken = jwt.sign(
@@ -51,7 +33,7 @@ export class Authentication {
     return refreshToken;
   };
 
-  public static extractToken = (token: string) => {
+  public static verifyToken = (token: string) => {
     const secretKey: string = process.env
       .JWT_SECRET_KEY as string;
 
@@ -66,12 +48,12 @@ export class Authentication {
     return data;
   };
 
-  public static extractRefreshToken = (token: string) => {
+  public static verifyRefreshToken = (token: string) => {
     const secretKey: string = process.env
       .JWT_REFRESH_KEY as string;
 
     let data: any;
-    jwt.verify(token, secretKey, (err, decoded) => {
+    jwt.verify(token, secretKey, async (err, decoded) => {
       if (err) {
         data = null;
       } else {

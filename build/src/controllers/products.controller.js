@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.productController = void 0;
-const response_helper_1 = require("../helpers/response.helper");
-const error_helper_1 = require("../helpers/error.helper");
+const response_1 = require("../helpers/response");
+const error_1 = require("../helpers/error");
 const { Product } = require("../db/models");
 class ProductsController {
     index(req, res, next) {
@@ -32,7 +32,7 @@ class ProductsController {
                     // limit: limitInt,
                     // offset: offset,
                 });
-                return (0, response_helper_1.response)(res, 200, { products });
+                return (0, response_1.createResponse)(res, 200, { products });
             }
             catch (err) {
                 next(err);
@@ -49,13 +49,13 @@ class ProductsController {
                     attributes: ["sku"],
                 });
                 if (findProduct) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "product already exist",
                     });
                 }
                 // create product
                 const product = yield Product.create(req.body);
-                return (0, response_helper_1.response)(res, 200, { product });
+                return (0, response_1.createResponse)(res, 200, { product });
             }
             catch (err) {
                 next(err);
@@ -69,11 +69,11 @@ class ProductsController {
                 const product = yield Product.findByPk(id);
                 // check if product exist
                 if (!product) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "product does not exist",
                     });
                 }
-                return (0, response_helper_1.response)(res, 200, { product });
+                return (0, response_1.createResponse)(res, 200, { product });
             }
             catch (err) {
                 next(err);
@@ -88,13 +88,15 @@ class ProductsController {
                 const findProduct = yield Product.findByPk(id);
                 // check if product exist
                 if (!findProduct) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "product does not exist",
                     });
                 }
                 // update product
-                const product = yield Product.update(req.body, { where: { id } });
-                return (0, response_helper_1.response)(res, 200, { product });
+                const product = yield Product.update(req.body, {
+                    where: { id },
+                });
+                return (0, response_1.createResponse)(res, 200, { product });
             }
             catch (err) {
                 next(err);
@@ -109,7 +111,7 @@ class ProductsController {
                 const findProduct = yield Product.findByPk(id);
                 // check if product exist
                 if (!findProduct) {
-                    return (0, error_helper_1.errors)(res, 400, {
+                    return (0, error_1.createErrors)(res, 400, {
                         message: "product does not exist",
                     });
                 }
@@ -117,7 +119,9 @@ class ProductsController {
                 yield Product.destroy({
                     where: { id },
                 });
-                return (0, response_helper_1.response)(res, 200, { message: "product deleted" });
+                return (0, response_1.createResponse)(res, 200, {
+                    message: "product deleted",
+                });
             }
             catch (err) {
                 next(err);

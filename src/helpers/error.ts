@@ -1,7 +1,11 @@
 import { validationResult } from "express-validator";
 import { Request, Response, NextFunction } from "express";
 
-export const errors = (res: Response, code: number, errors: Object) => {
+export const createErrors = (
+  res: Response,
+  code: number,
+  errors: Object,
+) => {
   return res.status(code).json({
     status: false,
     code: code,
@@ -9,10 +13,10 @@ export const errors = (res: Response, code: number, errors: Object) => {
   });
 };
 
-export const errorValidation = (
+export const errorValidator = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const errors = validationResult(req);
 

@@ -1,6 +1,6 @@
 import { body } from "express-validator";
 import { Request, Response, NextFunction } from "express";
-import { errorValidation } from "../helpers/error.helper";
+import { errorValidator } from "../helpers/error";
 
 export const registerValidator = [
   body("email")
@@ -12,7 +12,7 @@ export const registerValidator = [
       "Password length must be at least 6 characters",
     ),
   (req: Request, res: Response, next: NextFunction) => {
-    errorValidation(req, res, next);
+    errorValidator(req, res, next);
   },
 ];
 
@@ -26,6 +26,6 @@ export const loginValidator = [
       "Password length must be at least 6 characters",
     ),
   (req: Request, res: Response, next: NextFunction) => {
-    errorValidation(req, res, next);
+    errorValidator(req, res, next);
   },
 ];

@@ -8,6 +8,6 @@ const authorization_1 = require("../middlewares/authorization");
 exports.usersRouter = (0, express_1.Router)();
 exports.usersRouter.post("/register", users_validator_1.registerValidator, users_controller_1.usersController.register);
 exports.usersRouter.post("/login", users_validator_1.loginValidator, users_controller_1.usersController.login);
-exports.usersRouter.get("/refresh-token", authorization_1.authenticated, users_controller_1.usersController.refreshToken);
-exports.usersRouter.get("/current-user", authorization_1.authenticated, users_controller_1.usersController.userDetail);
+exports.usersRouter.get("/refresh-token", users_controller_1.usersController.refreshToken);
+exports.usersRouter.get("/current-user", authorization_1.authenticated, users_controller_1.usersController.currentUser);
 exports.usersRouter.get("/logout", authorization_1.authenticated, users_controller_1.usersController.logout);

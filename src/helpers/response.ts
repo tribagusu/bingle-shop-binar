@@ -1,6 +1,6 @@
 import { Response } from "express";
 
-export const response = (
+export const createResponse = (
   res: Response,
   code: number,
   data: Object,

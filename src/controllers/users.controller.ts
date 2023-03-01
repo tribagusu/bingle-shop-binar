@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { Authentication } from "../utils/authentication";
-import { response } from "../helpers/response.helper";
-import { errors } from "../helpers/error.helper";
+import Hash from "../modules/hash";
+import ModuleJwt from "../modules/jwt";
+import { createResponse } from "../helpers/response";
+import { createErrors } from "../helpers/error";
 const { User } = require("../db/models");
 
 class UsersController {
@@ -21,16 +22,14 @@ class UsersController {
 
       // user already exist
       if (findUser) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "Invalid authentication",
         });
       }
 
-      const hashedPassword = await Authentication.hashing(
-        password,
-      );
+      const hashedPassword = await Hash.hashing(password);
 
-      const user = await User.create({
+      await User.create({
         name,
         email,
         password: hashedPassword,
@@ -38,21 +37,8 @@ class UsersController {
         address,
       });
 
-      const accessToken = Authentication.generateToken(
-        user.id,
-      );
-
-      const refreshToken =
-        Authentication.generateRefreshToken(user.id);
-
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-      });
-
-      return response(res, 200, {
-        _id: user.id,
-        access_token: accessToken,
+      return createResponse(res, 200, {
+        message: "User created",
       });
     } catch (err) {
       next(err);
@@ -71,39 +57,37 @@ class UsersController {
       });
 
       if (!user) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "Invalid authentication",
         });
       }
 
-      const isMatched = await Authentication.hashCompare(
+      const isMatched = await Hash.compare(
         password,
         user.password,
       );
 
       if (!isMatched) {
-        return errors(res, 400, {
+        return createErrors(res, 400, {
           message: "Invalid authentication",
         });
       }
 
-      const accessToken = Authentication.generateToken(
+      const accessToken = ModuleJwt.signToken(user.id);
+
+      const refreshToken = ModuleJwt.signRefreshToken(
         user.id,
       );
 
-      const refreshToken =
-        Authentication.generateRefreshToken(user.id);
-
-      user.access_token = refreshToken;
+      user.refresh_token = refreshToken;
       await user.save();
-      res.cookie("refreshToken", refreshToken, {
+      res.cookie("jwt", refreshToken, {
         httpOnly: true,
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
-      return response(res, 200, {
-        _id: user.id,
-        access_token: accessToken,
+      return createResponse(res, 200, {
+        accessToken: accessToken,
       });
     } catch (err) {
       next(err);
@@ -116,36 +100,52 @@ class UsersController {
     next: NextFunction,
   ): Promise<Response> {
     try {
-      const refreshToken = req.cookies?.refreshToken;
+      const refreshToken = req?.cookies?.jwt;
 
       if (!refreshToken) {
-        return errors(res, 403, {
+        return createErrors(res, 401, {
           message: "Unauthorized",
+        });
+      }
+
+      // find the user
+      const user = await User.findOne({
+        where: {
+          refresh_token: refreshToken,
+        },
+      });
+
+      // detected reuse or hack
+      if (!user) {
+        return createErrors(res, 403, {
+          message: "Forbidden",
         });
       }
 
       const decodedRefreshToken =
-        Authentication.extractRefreshToken(refreshToken);
+        ModuleJwt.verifyRefreshToken(refreshToken);
 
-      if (!decodedRefreshToken) {
-        return errors(res, 403, {
-          message: "Unauthorized",
+      // detected reuse or hack
+      if (decodedRefreshToken.id !== user.id) {
+        return createErrors(res, 403, {
+          message: "Forbidden",
         });
       }
 
-      const newToken = Authentication.generateToken(
+      // issue new acces token
+      const newAccessToken = ModuleJwt.signToken(
         decodedRefreshToken.id,
       );
 
-      return response(res, 200, {
-        access_token: newToken,
+      return createResponse(res, 200, {
+        accessToken: newAccessToken,
       });
     } catch (err) {
       next(err);
     }
   }
 
-  public async userDetail(
+  public async currentUser(
     req: Request,
     res: Response,
     next: NextFunction,
@@ -160,7 +160,7 @@ class UsersController {
 
       // user not found
       if (!user) {
-        return errors(res, 404, {
+        return createErrors(res, 404, {
           message: "Not found",
         });
       }
@@ -173,7 +173,7 @@ class UsersController {
         address: user.address,
       };
 
-      return response(res, 200, {
+      return createResponse(res, 200, {
         user: userData,
       });
     } catch (err) {
@@ -187,7 +187,7 @@ class UsersController {
     next: NextFunction,
   ): Promise<Response> {
     try {
-      const refreshToken = req.cookies?.refreshToken;
+      const refreshToken = req?.cookies?.jwt;
 
       if (!refreshToken) {
         return res
@@ -195,28 +195,28 @@ class UsersController {
           .json({ message: "User logged out" });
       }
 
-      const userId = res.locals.userId;
       const user = await User.findOne({
         where: {
-          id: userId,
+          refresh_token: refreshToken,
         },
       });
 
+      // detected hack
       if (!user) {
-        res.clearCookie("refreshToken");
-        return response(res, 200, {
+        res.clearCookie("jwt");
+        return createResponse(res, 200, {
           message: "User logged out",
         });
       }
 
-      await User.update(
-        { access_token: null },
-        { where: { id: user.id } },
-      );
+      // delete token in jwt
+      res.clearCookie("jwt");
 
-      res.clearCookie("refreshToken");
+      // delete refresh token in db
+      user.refresh_token = null;
+      user.save();
 
-      return response(res, 200, {
+      return createResponse(res, 200, {
         message: "User logged out",
       });
     } catch (err) {

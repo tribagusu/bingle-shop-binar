@@ -39,8 +39,8 @@ module.exports = {
                     type: Sequelize.STRING,
                     allowNull: true,
                 },
-                access_token: {
-                    type: Sequelize.TEXT,
+                refresh_token: {
+                    type: Sequelize.STRING,
                     allowNull: true,
                 },
                 created_at: {

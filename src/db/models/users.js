@@ -31,8 +31,8 @@ Users.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    access_token: {
-      type: DataTypes.TEXT,
+    refresh_token: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
   },

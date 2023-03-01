@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import { errors } from "../helpers/error.helper";
-import { Authentication } from "../utils/authentication";
+import { createErrors } from "../helpers/error";
+import ModuleJwt from "../modules/jwt";
 const { User } = require("../db/models");
 
 export const authenticated = (
@@ -14,17 +13,21 @@ export const authenticated = (
       req.headers.authorization?.split(" ")[1];
 
     if (!accessToken) {
-      return errors(res, 401, { message: "Unauthorized" });
+      return createErrors(res, 401, {
+        message: "Unauthorized",
+      });
     }
 
-    const decodedToken =
-      Authentication.extractToken(accessToken);
+    const decodedAccessToken =
+      ModuleJwt.verifyToken(accessToken);
 
-    if (!decodedToken) {
-      return errors(res, 401, { message: "Unauthorized" });
+    if (!decodedAccessToken) {
+      return createErrors(res, 401, {
+        message: "Unauthorized",
+      });
     }
 
-    res.locals.userId = decodedToken?.id;
+    res.locals.userId = decodedAccessToken?.id;
 
     next();
   } catch (error) {
@@ -45,7 +48,9 @@ export const adminRole = async (
     });
 
     if (user.role !== "admin") {
-      return errors(res, 403, { message: "Forbidden" });
+      return createErrors(res, 403, {
+        message: "Forbidden",
+      });
     }
 
     next();
