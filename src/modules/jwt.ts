@@ -12,7 +12,7 @@ export default class ModuleJwt {
       },
       secretKey,
       {
-        expiresIn: "60s",
+        expiresIn: "600s",
       },
     );
     return accessToken;
