@@ -9,7 +9,7 @@ import { productsRouter } from "./routers/products.router";
 import { usersRouter } from "./routers/users.router";
 import { ordersRouter } from "./routers/orders.router";
 import { orderUpdateRouter } from "./routers/order-update.router";
-import { requestLogging } from "./middlewares/logger";
+// import { requestLogging } from "./middlewares/logger";
 
 export const app = express();
 
