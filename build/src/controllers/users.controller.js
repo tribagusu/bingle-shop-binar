@@ -22,6 +22,8 @@ class UsersController {
     register(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // upload foto
+                // use multer to upload foto
                 const { email, password, role, name, address } = req.body;
                 const findUser = yield User.findOne({
                     where: { email: email },

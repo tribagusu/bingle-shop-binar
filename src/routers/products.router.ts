@@ -13,8 +13,8 @@ export const productsRouter: Router = Router();
 
 productsRouter.get(
   "/",
-  authenticated,
-  adminRole,
+  // authenticated,
+  // adminRole,
   productController.index,
 );
 productsRouter.post(

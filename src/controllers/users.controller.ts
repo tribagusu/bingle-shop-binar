@@ -12,6 +12,9 @@ class UsersController {
     next: NextFunction,
   ): Promise<Response> {
     try {
+      // upload foto
+      // use multer to upload foto
+
       const { email, password, role, name, address } =
         req.body;
 
