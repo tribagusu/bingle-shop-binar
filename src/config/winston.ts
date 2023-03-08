@@ -6,11 +6,11 @@ export const logger = winston.createLogger({
   defaultMeta: { service: "logging" },
   transports: [
     new winston.transports.File({
-      filename: "../../logs/error.log",
+      filename: "../logs/error.log",
       level: "error",
     }),
     new winston.transports.File({
-      filename: "../../logs/combined.log",
+      filename: "../logs/combined.log",
     }),
   ],
 });

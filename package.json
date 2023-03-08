@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node build/index.js",
+    "postinstall": "tsc",
     "tsc": "rm -rf build/ && tsc",
     "tsw": "rm -rf build/ && tsc -w",
-    "dev": "nodemon ./build/index.js",
-    "start": "node ./build/index.js"
+    "dev": "nodemon build/index.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
